@@ -69,7 +69,7 @@ PassForge runs **100% client-side**. No data is ever sent to any server. No cook
 No build tools, no dependencies. Just open the file:
 
 ```bash
-git clone https://github.com/it2konst/it2konst-passforge.git
+git clone https://github.com/it2konst/passforge.git
 cd passforge
 open index.html
 ```
@@ -169,7 +169,7 @@ PassForge работает **на 100% на стороне клиента**. Н�
 Без сборщиков, без зависимостей. Просто откройте файл:
 
 ```bash
-git clone https://github.com/it2konst/it2konst-passforge.git
+git clone https://github.com/it2konst/passforge.git
 cd passforge
 open index.html
 ```
