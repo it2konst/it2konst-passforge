@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![No Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)]()
 
-[English](#-features) · [Русский](#-возможности)
+[English](#-english) · [Русский](#-русский)
 
 </div>
 
@@ -63,6 +63,12 @@
 ### 🛡️ Privacy
 
 PassForge runs **100% client-side**. No data is ever sent to any server. No cookies, no tracking, no analytics. Your passwords never leave your device.
+
+### 🌍 Live Demo
+
+Try it now without cloning:  
+→ [https://it2konst.github.io/passforge/](https://it2konst.github.io/passforge/)  
+_(replace with your actual deployment link if different)_
 
 ### 🚀 Quick Start
 
