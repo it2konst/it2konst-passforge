@@ -67,8 +67,7 @@ PassForge runs **100% client-side**. No data is ever sent to any server. No cook
 ### 🌍 Live Demo
 
 Try it now without cloning:  
-→ [https://it2konst.github.io/passforge/](https://it2konst.github.io/passforge/)  
-_(replace with your actual deployment link if different)_
+→ [https://it2konst.site](https://it2konst.site)
 
 ### 🚀 Quick Start
 
