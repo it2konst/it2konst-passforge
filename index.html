@@ -642,6 +642,9 @@
         cursor: pointer;
         transition: all 0.3s;
         user-select: none;
+        width: 100%;
+        text-align: left;
+        font: inherit;
       }
 
       .char-option:hover {
@@ -673,6 +676,17 @@
         background: var(--accent);
         border-color: var(--accent);
         color: #fff;
+      }
+
+      .char-option:focus-visible,
+      .faq-question:focus-visible,
+      .lang-btn:focus-visible,
+      .history-copy:focus-visible,
+      .icon-btn:focus-visible,
+      .generate-btn:focus-visible,
+      .theme-toggle:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
 
       .char-option-text {
@@ -1083,10 +1097,15 @@
         >
         <a href="#faq" class="nav-link hide-mobile" data-i18n="nav_faq">FAQ</a>
         <div class="lang-toggle">
-          <button class="lang-btn active" id="langRu" onclick="setLang('ru')">
+          <button
+            class="lang-btn active"
+            id="langRu"
+            type="button"
+            aria-pressed="true"
+          >
             RU
           </button>
-          <button class="lang-btn" id="langEn" onclick="setLang('en')">
+          <button class="lang-btn" id="langEn" type="button" aria-pressed="false">
             EN
           </button>
         </div>
@@ -1161,7 +1180,12 @@
         </div>
 
         <div class="char-options" id="charOptions">
-          <div class="char-option active" data-type="uppercase">
+          <button
+            class="char-option active"
+            data-type="uppercase"
+            type="button"
+            aria-pressed="true"
+          >
             <div class="char-checkbox">✓</div>
             <div class="char-option-text">
               <span class="char-option-label" data-i18n="opt_upper"
@@ -1169,8 +1193,13 @@
               >
               <span class="char-option-preview">A B C D E F</span>
             </div>
-          </div>
-          <div class="char-option active" data-type="lowercase">
+          </button>
+          <button
+            class="char-option active"
+            data-type="lowercase"
+            type="button"
+            aria-pressed="true"
+          >
             <div class="char-checkbox">✓</div>
             <div class="char-option-text">
               <span class="char-option-label" data-i18n="opt_lower"
@@ -1178,8 +1207,13 @@
               >
               <span class="char-option-preview">a b c d e f</span>
             </div>
-          </div>
-          <div class="char-option active" data-type="numbers">
+          </button>
+          <button
+            class="char-option active"
+            data-type="numbers"
+            type="button"
+            aria-pressed="true"
+          >
             <div class="char-checkbox">✓</div>
             <div class="char-option-text">
               <span class="char-option-label" data-i18n="opt_digits"
@@ -1187,8 +1221,13 @@
               >
               <span class="char-option-preview">0 1 2 3 4 5</span>
             </div>
-          </div>
-          <div class="char-option active" data-type="symbols">
+          </button>
+          <button
+            class="char-option active"
+            data-type="symbols"
+            type="button"
+            aria-pressed="true"
+          >
             <div class="char-checkbox">✓</div>
             <div class="char-option-text">
               <span class="char-option-label" data-i18n="opt_symbols"
@@ -1196,7 +1235,7 @@
               >
               <span class="char-option-preview">! @ # $ % &</span>
             </div>
-          </div>
+          </button>
         </div>
 
         <button class="generate-btn" id="generateBtn">
@@ -1282,7 +1321,7 @@
     <section class="faq-section reveal" id="faq">
       <h2 class="faq-title" data-i18n="faq_title">Частые вопросы</h2>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button class="faq-question" type="button" aria-expanded="false">
           <span data-i18n="faq1_q">Безопасен ли этот генератор?</span
           ><span class="arrow">▼</span>
         </button>
@@ -1296,7 +1335,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button class="faq-question" type="button" aria-expanded="false">
           <span data-i18n="faq2_q">Какая длина пароля считается надёжной?</span
           ><span class="arrow">▼</span>
         </button>
@@ -1310,7 +1349,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button class="faq-question" type="button" aria-expanded="false">
           <span data-i18n="faq3_q"
             >Зачем генератор, если можно придумать самому?</span
           ><span class="arrow">▼</span>
@@ -1324,7 +1363,7 @@
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="toggleFaq(this)">
+        <button class="faq-question" type="button" aria-expanded="false">
           <span data-i18n="faq4_q">Сохраняются ли мои пароли?</span
           ><span class="arrow">▼</span>
         </button>
@@ -1346,7 +1385,7 @@
       </p>
     </footer>
 
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
       // ═══════════════════════════════════════
@@ -1508,12 +1547,13 @@
         document.documentElement.setAttribute("data-lang", curLang);
         document.documentElement.setAttribute("lang", curLang);
         document.title = t("page_title");
-        document
-          .getElementById("langRu")
-          .classList.toggle("active", curLang === "ru");
-        document
-          .getElementById("langEn")
-          .classList.toggle("active", curLang === "en");
+        const langRuBtn = document.getElementById("langRu");
+        const langEnBtn = document.getElementById("langEn");
+        const isRu = curLang === "ru";
+        langRuBtn.classList.toggle("active", isRu);
+        langEnBtn.classList.toggle("active", !isRu);
+        langRuBtn.setAttribute("aria-pressed", String(isRu));
+        langEnBtn.setAttribute("aria-pressed", String(!isRu));
         document.querySelectorAll("[data-i18n]").forEach((el) => {
           el.textContent = t(el.getAttribute("data-i18n"));
         });
@@ -1716,8 +1756,8 @@
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;")
               .replace(/"/g, "&quot;");
-            const jsafe = h.pw.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-            return `<div class="history-item" style="animation-delay:${i * 0.05}s"><span class="history-pw">${safe}</span><span class="history-meta">${h.len} ${cw} · ${h.time}</span><button class="history-copy" onclick="copyPw('${jsafe}')" title="${ct}">📋</button></div>`;
+            const encoded = encodeURIComponent(h.pw);
+            return `<div class="history-item" style="animation-delay:${i * 0.05}s"><span class="history-pw">${safe}</span><span class="history-meta">${h.len} ${cw} · ${h.time}</span><button class="history-copy" type="button" data-copy="${encoded}" title="${ct}">📋</button></div>`;
           })
           .join("");
       }
@@ -1752,6 +1792,7 @@
           }
           state.options[tp] = !state.options[tp];
           el.classList.toggle("active");
+          el.setAttribute("aria-pressed", String(state.options[tp]));
           updatePassword();
         });
       });
@@ -1790,6 +1831,8 @@
       document
         .getElementById("refreshBtn")
         .addEventListener("click", updatePassword);
+      document.getElementById("langRu").addEventListener("click", () => setLang("ru"));
+      document.getElementById("langEn").addEventListener("click", () => setLang("en"));
       document.getElementById("generateBtn").addEventListener("click", () => {
         updatePassword();
         const b = document.getElementById("generateBtn");
@@ -1801,6 +1844,13 @@
         state.history = [];
         renderHistory();
         showToast(t("t_cleared"));
+      });
+      document.getElementById("historyList").addEventListener("click", (e) => {
+        const btn = e.target.closest(".history-copy");
+        if (!btn) return;
+        const encoded = btn.getAttribute("data-copy");
+        if (!encoded) return;
+        copyPw(decodeURIComponent(encoded));
       });
 
       // ═══ TOAST ═══
@@ -1817,11 +1867,17 @@
       function toggleFaq(btn) {
         const item = btn.parentElement;
         const open = item.classList.contains("open");
-        document
-          .querySelectorAll(".faq-item")
-          .forEach((i) => i.classList.remove("open"));
+        document.querySelectorAll(".faq-item").forEach((i) => {
+          i.classList.remove("open");
+          const q = i.querySelector(".faq-question");
+          if (q) q.setAttribute("aria-expanded", "false");
+        });
         if (!open) item.classList.add("open");
+        btn.setAttribute("aria-expanded", String(!open));
       }
+      document.querySelectorAll(".faq-question").forEach((btn) => {
+        btn.addEventListener("click", () => toggleFaq(btn));
+      });
 
       // ═══ REVEAL ═══
       const obs = new IntersectionObserver(
