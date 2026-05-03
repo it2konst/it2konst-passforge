@@ -9,6 +9,17 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Применяем тему ДО отрисовки CSS, чтобы избежать FOUC
+      (function () {
+        try {
+          var t = localStorage.getItem("passforge-theme");
+          if (t === "light" || t === "dark") {
+            document.documentElement.setAttribute("data-theme", t);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <style>
       *,
       *::before,
@@ -419,8 +430,7 @@
         position: relative;
       }
 
-      .password-display:hover,
-      .password-display:focus-within {
+      .password-display:hover {
         border-color: var(--accent);
         box-shadow: 0 0 0 3px var(--accent-glow);
       }
@@ -1463,6 +1473,8 @@
           footer:
             "PassForge © 2026 - Генератор паролей. Работает полностью в вашем браузере.",
           page_title: "PassForge - Генератор надёжных паролей",
+          theme_to_light: "Переключить на светлую тему",
+          theme_to_dark: "Переключить на тёмную тему",
         },
         en: {
           nav_tips: "Tips",
@@ -1535,10 +1547,30 @@
           footer:
             "PassForge © 2026 - Password Generator. Runs entirely in your browser.",
           page_title: "PassForge - Secure Password Generator",
+          theme_to_light: "Switch to light theme",
+          theme_to_dark: "Switch to dark theme",
         },
       };
 
-      let curLang = localStorage.getItem("passforge-lang") || "ru";
+      let curLang = "ru";
+      // Safe localStorage (Safari private mode и т.п. могут бросать)
+      const safeStorage = {
+        get(key) {
+          try {
+            return localStorage.getItem(key);
+          } catch (e) {
+            return null;
+          }
+        },
+        set(key, val) {
+          try {
+            localStorage.setItem(key, val);
+          } catch (e) {}
+        },
+      };
+      const savedLang = safeStorage.get("passforge-lang");
+      if (savedLang === "ru" || savedLang === "en") curLang = savedLang;
+
       function t(k) {
         return i18n[curLang]?.[k] || i18n.ru[k] || k;
       }
@@ -1562,27 +1594,37 @@
         });
         document.getElementById("copyBtn").title = t("copy_tip");
         document.getElementById("refreshBtn").title = t("refresh_tip");
+        // aria-label кнопки темы зависит от текущей темы и языка
+        if (typeof updateThemeAriaLabel === "function") updateThemeAriaLabel();
         refreshStrength();
         renderHistory();
       }
 
       function setLang(lang) {
         curLang = lang;
-        localStorage.setItem("passforge-lang", lang);
+        safeStorage.set("passforge-lang", lang);
         applyLang();
       }
 
       // ═══ THEME ═══
       const html = document.documentElement;
-      const savedTheme = localStorage.getItem("passforge-theme");
+      const savedTheme = safeStorage.get("passforge-theme");
       if (savedTheme) html.setAttribute("data-theme", savedTheme);
 
       document.getElementById("themeToggle").addEventListener("click", () => {
         const next =
           html.getAttribute("data-theme") === "dark" ? "light" : "dark";
         html.setAttribute("data-theme", next);
-        localStorage.setItem("passforge-theme", next);
+        safeStorage.set("passforge-theme", next);
+        // Обновляем aria-label темы при смене
+        updateThemeAriaLabel();
       });
+
+      function updateThemeAriaLabel() {
+        const btn = document.getElementById("themeToggle");
+        const isDark = html.getAttribute("data-theme") === "dark";
+        btn.setAttribute("aria-label", t(isDark ? "theme_to_light" : "theme_to_dark"));
+      }
 
       // ═══ CHARSETS & STATE ═══
       const CHARS = {
@@ -1605,21 +1647,29 @@
 
       // ═══ GENERATE ═══
       function generatePassword() {
-        let charset = "";
         const active = Object.entries(state.options).filter(([, v]) => v);
         if (!active.length) return "";
-        active.forEach(([k]) => (charset += CHARS[k]));
-        const arr = new Uint32Array(state.length);
-        crypto.getRandomValues(arr);
-        let pw = [];
+        // Защита: длина пароля не может быть меньше числа активных типов,
+        // иначе мы не сможем гарантировать наличие каждого типа.
+        const targetLen = Math.max(state.length, active.length);
+        const charset = active.map(([k]) => CHARS[k]).join("");
+        const pw = new Array(targetLen);
+        // Гарантируем по одному символу каждого активного типа
         active.forEach(([k], i) => {
           const s = CHARS[k];
           const r = new Uint32Array(1);
           crypto.getRandomValues(r);
           pw[i] = s[r[0] % s.length];
         });
-        for (let i = active.length; i < state.length; i++)
-          pw[i] = charset[arr[i] % charset.length];
+        // Добиваем остаток случайными символами из общего набора
+        if (targetLen > active.length) {
+          const arr = new Uint32Array(targetLen - active.length);
+          crypto.getRandomValues(arr);
+          for (let i = active.length, j = 0; i < targetLen; i++, j++) {
+            pw[i] = charset[arr[j] % charset.length];
+          }
+        }
+        // Перемешиваем (Fisher-Yates) на крипто-стойкой случайности
         for (let i = pw.length - 1; i > 0; i--) {
           const r = new Uint32Array(1);
           crypto.getRandomValues(r);
@@ -1638,7 +1688,8 @@
         if (/[0-9]/.test(pw)) pool += 10;
         if (/[^a-zA-Z0-9]/.test(pw)) pool += 32;
         const ent = pw.length * Math.log2(pool || 1),
-          secs = Math.pow(2, ent) / 1e10;
+          // 1e11 ≈ 100 млрд попыток/сек - порядок современных GPU для слабых хэшей
+          secs = Math.pow(2, ent) / 1e11;
         let time;
         if (secs < 1) time = t("s_instant");
         else if (secs < 60) time = `~${Math.ceil(secs)} ${t("s_sec")}`;
